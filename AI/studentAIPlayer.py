@@ -13,10 +13,6 @@ from random import randint
 #StudentAIPlayer
 #Authors: Kenny Trowbridge, Sean Pierson
 #
-#Sources:
-#Code from AIPlayer.py in the AI folder of antics was used
-#Code from http://stackoverflow.com/questions/26815096/ was used to generate
-#random numbers
 #
 #Description: The responsbility of this class is to interact with the game by
 #deciding a valid move based on a given game state. This class has methods that
@@ -36,26 +32,26 @@ class AIPlayer(Player):
     ##
     def __init__(self, inputPlayerId):
         super(AIPlayer,self).__init__(inputPlayerId, "KennyAndSeanHW1")
-    
+
     ##
     #getPlacement
-    #Description: The getPlacement method corresponds to the 
-    #action taken on setup phase 1 and setup phase 2 of the game. 
-    #In setup phase 1, the AI player will be passed a copy of the 
-    #state as currentState which contains the board, accessed via 
-    #currentState.board. The player will then return a list of 10 tuple 
-    #coordinates (from their side of the board) that represent Locations 
-    #to place the anthill and 9 grass pieces. In setup phase 2, the player 
+    #Description: The getPlacement method corresponds to the
+    #action taken on setup phase 1 and setup phase 2 of the game.
+    #In setup phase 1, the AI player will be passed a copy of the
+    #state as currentState which contains the board, accessed via
+    #currentState.board. The player will then return a list of 10 tuple
+    #coordinates (from their side of the board) that represent Locations
+    #to place the anthill and 9 grass pieces. In setup phase 2, the player
     #will again be passed the state and needs to return a list of 2 tuple
-    #coordinates (on their opponent’s side of the board) which represent
-    #Locations to place the food sources. This is all that is necessary to 
+    #coordinates (on their opponentï¿½s side of the board) which represent
+    #Locations to place the food sources. This is all that is necessary to
     #complete the setup phases.
     #
     #Parameters:
-    #   currentState - The current state of the game at the time the Game is 
+    #   currentState - The current state of the game at the time the Game is
     #       requesting a placement from the player.(GameState)
     #
-    #Return: If setup phase 1: list of ten 2-tuples of ints -> [(x1,y1), (x2,y2),…,(x10,y10)]
+    #Return: If setup phase 1: list of ten 2-tuples of ints -> [(x1,y1), (x2,y2),ï¿½,(x10,y10)]
     #       If setup phase 2: list of two 2-tuples of ints -> [(x1,y1), (x2,y2)]
     ##
     def getPlacement(self, currentState):
@@ -83,6 +79,12 @@ class AIPlayer(Player):
 
     ##
     #  HELPER METHODS
+    #   Note: Somewhere in here we need to integrate listAllMovementPaths because it
+    #         takes into account the movement cost of grass. Right now going
+    #         through grass causes the AI to break
+    #         When checking the reachable adjacent, we need to see what
+    #         constructs are in the spots of the path, if grass, we have
+    #         to subrtact one from the movement cost
     ##
 
     def getNextStep(self, currentState, src, dst, movement):
@@ -92,29 +94,32 @@ class AIPlayer(Player):
 
         #horizontal movement first, then vertical
         for n in range(0, movement, 1):
+            print "listReachableAdjacent returned:"
             print listReachableAdjacent(currentState, tracker, movement)
+            print "tracker:"
             print tracker
             if (tracker[0] < dst[0]):#Move right
-                if((tracker[0] + 1, tracker[1]) in listReachableAdjacent(currentState, tracker, movement)):
+                if((tracker[0] + 1, tracker[1]) in listAllMovementPaths(currentState, tracker, movement)[n]):
                     moveList.append((tracker[0] + 1, tracker[1]))
                     #adjust tracker for next iteration
                     tracker = (tracker[0] + 1, tracker[1])
             elif (tracker[0] > dst[0]):#move left
-                if((tracker[0] - 1, tracker[1]) in listReachableAdjacent(currentState, tracker, movement)):
+                if((tracker[0] - 1, tracker[1]) in listAllMovementPaths(currentState, tracker, movement)[n]):
                     moveList.append((tracker[0] - 1, tracker[1]))
                     #adjust tracker for next iteration
                     tracker = (tracker[0] - 1, tracker[1])
             elif (tracker[1] > dst[1]):#move down
-                if((tracker[0], tracker[1] - 1) in listReachableAdjacent(currentState, tracker, movement)):
+                if((tracker[0], tracker[1] - 1) in listAllMovementPaths(currentState, tracker, movement)[n]):
                     moveList.append((tracker[0], tracker[1] - 1))
                     #adjust tracker for next iteration
                     tracker = (tracker[0], tracker[1] - 1)
             elif (tracker[1] < dst[1]):#move up
-                if((tracker[0], tracker[1] + 1) in listReachableAdjacent(currentState, tracker, movement)):
+                if((tracker[0], tracker[1] + 1) in listAllMovementPaths(currentState, tracker, movement)[n]):
                     moveList.append((tracker[0], tracker[1] + 1))
                     #adjust tracker for next iteration
                     tracker = (tracker[0], tracker[1] + 1)
-
+        print "movelist:"
+        print moveList
         return moveList
 
 
@@ -138,21 +143,21 @@ class AIPlayer(Player):
     ##
     #getMove
     #
-    #Description: The getMove method corresponds to the play phase of the game 
-    #and requests from the player a Move object. All types are symbolic 
-    #constants which can be referred to in Constants.py. The move object has a 
-    #field for type (moveType) as well as field for relevant coordinate 
-    #information (coordList). If for instance the player wishes to move an ant, 
-    #they simply return a Move object where the type field is the MOVE_ANT constant 
-    #and the coordList contains a listing of valid locations starting with an Ant 
-    #and containing only unoccupied spaces thereafter. A build is similar to a move 
-    #except the type is set as BUILD, a buildType is given, and a single coordinate 
-    #is in the list representing the build location. For an end turn, no coordinates 
+    #Description: The getMove method corresponds to the play phase of the game
+    #and requests from the player a Move object. All types are symbolic
+    #constants which can be referred to in Constants.py. The move object has a
+    #field for type (moveType) as well as field for relevant coordinate
+    #information (coordList). If for instance the player wishes to move an ant,
+    #they simply return a Move object where the type field is the MOVE_ANT constant
+    #and the coordList contains a listing of valid locations starting with an Ant
+    #and containing only unoccupied spaces thereafter. A build is similar to a move
+    #except the type is set as BUILD, a buildType is given, and a single coordinate
+    #is in the list representing the build location. For an end turn, no coordinates
     #are necessary, just set the type as END and return.
     #
     #Parameters:
-    #   currentState - The current state of the game at the time the Game is 
-    #       requesting a move from the player.(GameState)   
+    #   currentState - The current state of the game at the time the Game is
+    #       requesting a move from the player.(GameState)
     #
     #Return: Move(moveType [int], coordList [list of 2-tuples of ints], buildType [int]
     #
@@ -197,30 +202,30 @@ class AIPlayer(Player):
 
     ##
     #getAttack
-    #Description: The getAttack method is called on the player whenever an ant completes 
-    #a move and has a valid attack. It is assumed that an attack will always be made 
-    #because there is no strategic advantage from withholding an attack. The AIPlayer 
-    #is passed a copy of the state which again contains the board and also a clone of 
-    #the attacking ant. The player is also passed a list of coordinate tuples which 
-    #represent valid locations for attack. Hint: a random AI can simply return one of 
-    #these coordinates for a valid attack. 
+    #Description: The getAttack method is called on the player whenever an ant completes
+    #a move and has a valid attack. It is assumed that an attack will always be made
+    #because there is no strategic advantage from withholding an attack. The AIPlayer
+    #is passed a copy of the state which again contains the board and also a clone of
+    #the attacking ant. The player is also passed a list of coordinate tuples which
+    #represent valid locations for attack. Hint: a random AI can simply return one of
+    #these coordinates for a valid attack.
     #
     #Parameters:
-    #   currentState - The current state of the game at the time the Game is requesting 
+    #   currentState - The current state of the game at the time the Game is requesting
     #       a move from the player. (GameState)
     #   attackingAnt - A clone of the ant currently making the attack. (Ant)
-    #   enemyLocation - A list of coordinate locations for valid attacks (i.e. 
+    #   enemyLocation - A list of coordinate locations for valid attacks (i.e.
     #       enemies within range) ([list of 2-tuples of ints])
     #
     #Return: A coordinate that matches one of the entries of enemyLocations. ((int,int))
     ##
     def getAttack(self, currentState, attackingAnt, enemyLocations):
         return enemyLocations[0]
-        
+
     ##
     #registerWin
-    #Description: The last method, registerWin, is called when the game ends and simply 
-    #indicates to the AI whether it has won or lost the game. This is to help with 
+    #Description: The last method, registerWin, is called when the game ends and simply
+    #indicates to the AI whether it has won or lost the game. This is to help with
     #learning algorithms to develop more successful strategies.
     #
     #Parameters:
