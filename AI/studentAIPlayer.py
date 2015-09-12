@@ -81,6 +81,42 @@ class AIPlayer(Player):
         else:
             return None
 
+    ##
+    #  HELPER METHODS
+    ##
+
+    def getNextStep(self, currentState, src, dst, movement):
+        #find the next step in the fastest path to the destination
+        moveList = [src] #length is movement + 1
+        tracker = src
+
+        #horizontal movement first, then vertical
+        for n in range(0, movement, 1):
+            print listReachableAdjacent(currentState, tracker, movement)
+            print tracker
+            if (tracker[0] < dst[0]):#Move right
+                if((tracker[0] + 1, tracker[1]) in listReachableAdjacent(currentState, tracker, movement)):
+                    moveList.append((tracker[0] + 1, tracker[1]))
+                    #adjust tracker for next iteration
+                    tracker = (tracker[0] + 1, tracker[1])
+            elif (tracker[0] > dst[0]):#move left
+                if((tracker[0] - 1, tracker[1]) in listReachableAdjacent(currentState, tracker, movement)):
+                    moveList.append((tracker[0] - 1, tracker[1]))
+                    #adjust tracker for next iteration
+                    tracker = (tracker[0] - 1, tracker[1])
+            elif (tracker[1] > dst[1]):#move down
+                if((tracker[0], tracker[1] - 1) in listReachableAdjacent(currentState, tracker, movement)):
+                    moveList.append((tracker[0], tracker[1] - 1))
+                    #adjust tracker for next iteration
+                    tracker = (tracker[0], tracker[1] - 1)
+            elif (tracker[1] < dst[1]):#move up
+                if((tracker[0], tracker[1] + 1) in listReachableAdjacent(currentState, tracker, movement)):
+                    moveList.append((tracker[0], tracker[1] + 1))
+                    #adjust tracker for next iteration
+                    tracker = (tracker[0], tracker[1] + 1)
+
+        return moveList
+
 
     ##
     #Function:  nearestFood
@@ -123,12 +159,14 @@ class AIPlayer(Player):
     def getMove(self, currentState):
         mergedList = getAntList(currentState, PLAYER_TWO, [(WORKER)])
         foodLocList = getConstrList(currentState, None, [(FOOD)])
-        home = getConstrList(currentState, PLAYER_TWO, [(ANTHILL), (TUNNEL)])
+        homes = getConstrList(currentState, PLAYER_TWO, [(ANTHILL), (TUNNEL)])
 
         #For each ant we own
         for ant in mergedList:
             #Ant's current coordinates
             antCoords = ant.coords
+            print "AntCoords:"
+            print antCoords
             if(ant.hasMoved == False):
                 if(ant.type == WORKER ):
                     #Movement paths of a worker ant
@@ -136,34 +174,26 @@ class AIPlayer(Player):
                     if(ant.carrying == False):
                         #Retrieve food
                         for f in foodLocList:
+                            #find the closest food
                             for m in range(0, len(paths),1):
                                 if(f.coords in paths[m]):
                                     return Move(MOVE_ANT, paths[m], None)
+                            #food not accessible, move towards food
+                            moveList = self.getNextStep(currentState, antCoords, f.coords, 2)
+                            return Move(MOVE_ANT, moveList, None)
 
                     if(ant.carrying == True):
                         #Return home if carrying food
-                        for h in home:
+                        for h in homes:
                             #find the closest nest, Tunnel or Hill
                             for m in range(0, len(paths),1):
                                 if(h.coords in paths[m]):
                                     return Move(MOVE_ANT, paths[m], None)
+                                #food not accessible, move towards food
+                            moveList = self.getNextStep(currentState, antCoords, h.coords, 2)
+                            return Move(MOVE_ANT, moveList, None)
 
-
-            shortest = stepsToReach(currentState, antCoords, foodLocList[0].coords)
-
-            for x in range(1, 4, 1):
-                if(shortest > stepsToReach(currentState, antCoords, foodLocList[x].coords)):
-                    shortest = stepsToReach(currentState, antCoords, foodLocList[x].coords)
-                    tester = x #index of the closest piece of food
-                if(shortest <= 2 and x == len(foodLocList)):
-                    return Move(MOVE_ANT, [antCoords, foodLocList[tester].coords], None)
-                else:
-                    return None
         return Move(END, None, None)
-
-
-
-
 
     ##
     #getAttack
