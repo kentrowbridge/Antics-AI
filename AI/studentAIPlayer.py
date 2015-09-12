@@ -60,7 +60,7 @@ class AIPlayer(Player):
     ##
     def getPlacement(self, currentState):
         if currentState.phase == SETUP_PHASE_1:
-            return [(5,0), (5,1), (4,0), (6,0), (4,1), (4,2), (3,0), (5,2), (6,2), (6,1), (7,0)]
+            return [(5,0), (5,1), (4,0), (6,0), (4,3), (4,2), (3,0), (5,2), (6,2), (6,1), (7,0)]
 
         #this else if is what sets up the food. it only lets us place 2 pieces
         #of food
@@ -80,7 +80,25 @@ class AIPlayer(Player):
 
         else:
             return None
-    
+
+
+    ##
+    #Function:  nearestFood
+    #
+    #Parameters:current state, coords of ant
+    #
+    #
+    #
+    #
+    ##
+    # def nearestFood(self, currentState, antCoord):
+    #     foodLocList = getConstrList(currentState, playerId, FOOD)
+    #     shorest = stepsToReach(currentState, antCoord, foodLocList[0].coords)
+    #     for x in range(1, 4, 1):
+    #         if(shortest > stepsToReach(currentState, antCoord, foodLocList[x].coords)):
+    #             shorest = stepsToReach(currentState, antCoord, foodLocList[x].coords)
+    #             tester = x
+    #     return foodLocList[tester].coords
     ##
     #getMove
     #
@@ -103,20 +121,42 @@ class AIPlayer(Player):
     #Return: Move(moveType [int], coordList [list of 2-tuples of ints], buildType [int]
     #
     def getMove(self, currentState):
-        workerAntList = []
-        foodLocList = getConstrList(currentState, playerId, FOOD)
-        for y in range(0,9,1):
-            for num in range(0,9,1):
-                antToCheck = getAntAt(currentState, (num, y))
-                if(antToCheck == WORKER):
-                    workerAntList.append(antToCheck)
-                    if(len(workerAntList)== 2):
-                        continue
-        for n in range(1,2,1):
-            shortestDist = stepsToReach(currentState, workerAntList[n].coords, foodLocList[0].coords)
+        mergedList = getAntList(currentState, PLAYER_TWO, [(WORKER)])
+        foodLocList = getConstrList(currentState, None, [(FOOD)])
+        home = getConstrList(currentState, PLAYER_TWO, [(ANTHILL), (TUNNEL)])
+        for ant in mergedList:
+            antCoords = ant.coords
+            paths = listAllMovementPaths(currentState, antCoords, 2)
+            if(ant.hasMoved == False):
+                if(ant.type == WORKER and ant.carrying == False):
 
-        return Move(MOVE_ANT, [])
-    
+                    for f in foodLocList:
+                        for m in range(0, len(paths),1):
+                            if(f.coords in paths[m]):
+                                return Move(MOVE_ANT, paths[m], None)
+
+                if(ant.type == WORKER and ant.carrying == True):
+
+                    for h in home:
+                        for m in range(0, len(paths),1):
+                            if(h.coords in paths[m]):
+                                return Move(MOVE_ANT, paths[m], None)
+                shortest = stepsToReach(currentState, antCoords, foodLocList[0].coords)
+
+                for x in range(1, 4, 1):
+                    if(shortest > stepsToReach(currentState, antCoords, foodLocList[x].coords)):
+                        shortest = stepsToReach(currentState, antCoords, foodLocList[x].coords)
+                        tester = x #index of the closest piece of food
+                    if(shortest <= 2 and x == len(foodLocList)):
+                        return Move(MOVE_ANT, [antCoords, foodLocList[tester].coords], None)
+                    else:
+                        return None
+        return Move(END, None, None)
+
+
+
+
+
     ##
     #getAttack
     #Description: The getAttack method is called on the player whenever an ant completes 
