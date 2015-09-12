@@ -124,33 +124,41 @@ class AIPlayer(Player):
         mergedList = getAntList(currentState, PLAYER_TWO, [(WORKER)])
         foodLocList = getConstrList(currentState, None, [(FOOD)])
         home = getConstrList(currentState, PLAYER_TWO, [(ANTHILL), (TUNNEL)])
+
+        #For each ant we own
         for ant in mergedList:
+            #Ant's current coordinates
             antCoords = ant.coords
-            paths = listAllMovementPaths(currentState, antCoords, 2)
             if(ant.hasMoved == False):
-                if(ant.type == WORKER and ant.carrying == False):
+                if(ant.type == WORKER ):
+                    #Movement paths of a worker ant
+                    paths = listAllMovementPaths(currentState, antCoords, 2)
+                    if(ant.carrying == False):
+                        #Retrieve food
+                        for f in foodLocList:
+                            for m in range(0, len(paths),1):
+                                if(f.coords in paths[m]):
+                                    return Move(MOVE_ANT, paths[m], None)
 
-                    for f in foodLocList:
-                        for m in range(0, len(paths),1):
-                            if(f.coords in paths[m]):
-                                return Move(MOVE_ANT, paths[m], None)
+                    if(ant.carrying == True):
+                        #Return home if carrying food
+                        for h in home:
+                            #find the closest nest, Tunnel or Hill
+                            for m in range(0, len(paths),1):
+                                if(h.coords in paths[m]):
+                                    return Move(MOVE_ANT, paths[m], None)
 
-                if(ant.type == WORKER and ant.carrying == True):
 
-                    for h in home:
-                        for m in range(0, len(paths),1):
-                            if(h.coords in paths[m]):
-                                return Move(MOVE_ANT, paths[m], None)
-                shortest = stepsToReach(currentState, antCoords, foodLocList[0].coords)
+            shortest = stepsToReach(currentState, antCoords, foodLocList[0].coords)
 
-                for x in range(1, 4, 1):
-                    if(shortest > stepsToReach(currentState, antCoords, foodLocList[x].coords)):
-                        shortest = stepsToReach(currentState, antCoords, foodLocList[x].coords)
-                        tester = x #index of the closest piece of food
-                    if(shortest <= 2 and x == len(foodLocList)):
-                        return Move(MOVE_ANT, [antCoords, foodLocList[tester].coords], None)
-                    else:
-                        return None
+            for x in range(1, 4, 1):
+                if(shortest > stepsToReach(currentState, antCoords, foodLocList[x].coords)):
+                    shortest = stepsToReach(currentState, antCoords, foodLocList[x].coords)
+                    tester = x #index of the closest piece of food
+                if(shortest <= 2 and x == len(foodLocList)):
+                    return Move(MOVE_ANT, [antCoords, foodLocList[tester].coords], None)
+                else:
+                    return None
         return Move(END, None, None)
 
 
