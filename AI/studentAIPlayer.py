@@ -121,6 +121,26 @@ class AIPlayer(Player):
         returnList = [src]#base case: return a no movement
         return returnList
 
+
+
+    def nearestFoodOrHill(self, currentState, antCoord, lookingFor):
+        if(lookingFor[0] == -1):
+            foodHillLocList = getConstrList(currentState, None, [(FOOD)])
+        if(lookingFor[0] == -3):
+            foodHillLocList = getConstrList(currentState, PLAYER_TWO, [(TUNNEL)])
+        if(lookingFor[0] == -4):
+            foodHillLocList = getConstrList(currentState, PLAYER_TWO, [(ANTHILL)])
+        print foodHillLocList
+        shortest = stepsToReach(currentState, antCoord, foodHillLocList[0].coords)
+        tester = 0
+        for x in range(0, len(foodHillLocList) - 1, 1):
+            if(shortest > stepsToReach(currentState, antCoord, foodHillLocList[x].coords)):
+                shortest = stepsToReach(currentState, antCoord, foodHillLocList[x].coords)
+                tester = x
+        return foodHillLocList[tester].coords
+
+
+
     #getMove
     #
     #Description: The getMove method corresponds to the play phase of the game
@@ -169,22 +189,28 @@ class AIPlayer(Player):
                         #Retrieve food
                         for f in foodLocList:
                             #find the closest food
+                            nearestFood = self.nearestFoodOrHill(currentState, antCoords, [(FOOD)])
                             for m in range(0, len(paths),1):
                                 if(f.coords in paths[m]):
                                     return Move(MOVE_ANT, paths[m], None)
                             #food not accessible, move towards food
-                            moveList = self.getNextStep(currentState, antCoords, f.coords, 2)
+                            moveList = self.getNextStep(currentState, antCoords, nearestFood, 2)
                             return Move(MOVE_ANT, moveList, None)
 
                     if(ant.carrying == True):
                         #Return home if carrying food
                         for h in homes:
                             #find the closest nest, Tunnel or Hill
+                            nearestHill = self.nearestFoodOrHill(currentState, antCoords, [(ANTHILL)])
+                            nearestTunnel = self.nearestFoodOrHill(currentState, antCoords, [(TUNNEL)])
                             for m in range(0, len(paths),1):
                                 if(h.coords in paths[m]):
                                     return Move(MOVE_ANT, paths[m], None)
                                 #food not accessible, move towards food
-                            moveList = self.getNextStep(currentState, antCoords, h.coords, 2)
+                                if(stepsToReach(currentState, antCoords, nearestHill) > stepsToReach(currentState, antCoords, nearestTunnel)):
+                                    moveList = self.getNextStep(currentState, antCoords, nearestTunnel, 2)
+                                else:
+                                    moveList = self.getNextStep(currentState, antCoords, nearestHill, 2)
                             return Move(MOVE_ANT, moveList, None)
                 if(ant.type == DRONE):
                     enemyHill = getConstrList(currentState, PLAYER_ONE, [(ANTHILL)])[0].coords
