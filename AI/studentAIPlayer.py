@@ -118,7 +118,8 @@ class AIPlayer(Player):
                 if listComp(returnList, moveList[m]):
                     return returnList
             returnList = returnList[:(len(returnList) - 1)]
-
+        returnList = [src]#base case: return a no movement
+        return returnList
 
     #getMove
     #
@@ -141,9 +142,19 @@ class AIPlayer(Player):
     #Return: Move(moveType [int], coordList [list of 2-tuples of ints], buildType [int]
     #
     def getMove(self, currentState):
-        mergedList = getAntList(currentState, PLAYER_TWO, [(WORKER)])
+        mergedList = getAntList(currentState, PLAYER_TWO, [(WORKER), (QUEEN), (DRONE), (SOLDIER)])
         foodLocList = getConstrList(currentState, None, [(FOOD)])
         homes = getConstrList(currentState, PLAYER_TWO, [(ANTHILL), (TUNNEL)])
+        buildMoves = listAllBuildMoves(currentState)
+
+        #loop through all the possible build moves
+        for b in range(0, len(buildMoves) - 1, 1):
+
+            if(getCurrPlayerInventory(currentState).foodCount == 3):
+                if(buildMoves[b].buildType == DRONE):
+
+                    return buildMoves[b]
+
 
         #For each ant we own
         for ant in mergedList:
@@ -175,15 +186,20 @@ class AIPlayer(Player):
                             moveList = self.getNextStep(currentState, antCoords, h.coords, 2)
                             return Move(MOVE_ANT, moveList, None)
                 if(ant.type == DRONE):
-                    enemyHill = getConstrList(currentState, PLAYER_ONE, [(ANTHILL)])
+                    enemyHill = getConstrList(currentState, PLAYER_ONE, [(ANTHILL)])[0].coords
+                    if(antCoords == enemyHill):
+                        return Move(MOVE_ANT, [antCoords], None)
                     moveList = self.getNextStep(currentState, antCoords, enemyHill, 3)
+                    #print "moveList %s" % moveList
                     return Move(MOVE_ANT, moveList, None)
                 if(ant.type == QUEEN):
                     #move one right and one down
-                    moveList = self.getNextStep(currentState, antCoords, (1,0), 2)
-                    if isPathOkForQueen(moveList):
-                        return Move(MOVE_ANT, moveList, None)
-                    return Move(MOVE_ANT, antCoords, None)
+
+                    #moveList = self.getNextStep(currentState, antCoords, (1,0), 2)
+                    #if isPathOkForQueen(moveList):
+                    #return Move(MOVE_ANT, (2,0), None
+                    if(antCoords != (2,0)):
+                        return Move(MOVE_ANT, [antCoords, (2,0)], None)
 
 
         return Move(END, None, None)
