@@ -175,17 +175,18 @@ class AIPlayer(Player):
     #
     def getMove(self, currentState):
         mergedList = getAntList(currentState, PLAYER_TWO, [(WORKER), (QUEEN), (DRONE), (SOLDIER)])
+        soldiers = getAntList(currentState, PLAYER_TWO, [(SOLDIER)])
+        drones = getAntList(currentState, PLAYER_TWO, [(DRONE)])
         foodLocList = getConstrList(currentState, None, [(FOOD)])
         homes = getConstrList(currentState, PLAYER_TWO, [(ANTHILL), (TUNNEL)])
         buildMoves = listAllBuildMoves(currentState)
 
         #loop through all the possible build moves
         for b in range(0, len(buildMoves) - 1, 1):
-
-            if(getCurrPlayerInventory(currentState).foodCount == 3):
-                if(buildMoves[b].buildType == DRONE):
-
-                    return buildMoves[b]
+            if(buildMoves[b].buildType == SOLDIER and len(drones) >= 2 and len(soldiers) < 2):
+                return buildMoves[b]
+            if(buildMoves[b].buildType == DRONE):
+                return buildMoves[b]
 
 
         #For each ant we own
@@ -220,10 +221,11 @@ class AIPlayer(Player):
                 if(ant.type == DRONE):
                     enemyHill = getConstrList(currentState, PLAYER_ONE, [(ANTHILL)])[0].coords
                     if(antCoords == enemyHill):
-                        return Move(MOVE_ANT, [antCoords], None)
-                    moveList = self.getNextStep(currentState, antCoords, enemyHill, 3)
-                    #print "moveList %s" % moveList
-                    return Move(MOVE_ANT, moveList, None)
+                    #    return Move(MOVE_ANT, [antCoords], None)
+                        pass
+                    else:
+                        moveList = self.getNextStep(currentState, antCoords, enemyHill, 3)
+                        return Move(MOVE_ANT, moveList, None)
                 if(ant.type == QUEEN):
                     #move one right and one down
 
