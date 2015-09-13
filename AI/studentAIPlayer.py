@@ -101,48 +101,16 @@ class AIPlayer(Player):
         tracker = src
 
         returnList = [src] #base case: Ant does not move
-        antCoordList = []
-        for ant in getAntList(currentState, None):
-            antCoordList.append(ant.coords)
 
         for n in range(0, movement):
             if (tracker[0] < dst[0]):#move right
-                plannedMove = (tracker[0] + 1, tracker[1])
-                if (plannedMove in antCoordList):#if path is blocked by ant
-                    if (tracker[1] < dst[1]):#move up
-                        tracker = (tracker[0], tracker[1] + 1)
-                    elif (tracker[1] > dst[1]):#move down
-                        tracker = (tracker[0], tracker[1] - 1)
-                else:
-                    tracker = plannedMove
+                tracker = (tracker[0] + 1, tracker[1])
             elif (tracker[0] > dst[0]):#move left
-                plannedMove = (tracker[0] - 1, tracker[1])
-                if (plannedMove in antCoordList):
-                    tracker = (tracker[0] + 1, tracker[1])
-                    if (tracker[1] < dst[1]):#move up
-                        tracker = (tracker[0], tracker[1] + 1)
-                    elif (tracker[1] > dst[1]):#move down
-                        tracker = (tracker[0], tracker[1] - 1)
-                else:
-                    tracker = plannedMove
+                tracker = (tracker[0] - 1, tracker[1])
             elif tracker[1] < dst[1]:#move up
-                plannedMove = (tracker[0], tracker[1] + 1)
-                if (plannedMove in antCoordList):
-                    if (tracker[0] < dst[0]):#move right
-                        tracker = (tracker[0] + 1, tracker[1])
-                    elif (tracker[0] > dst[0]):#move left
-                        tracker = (tracker[0] - 1, tracker[1])
-                else:
-                    tracker = plannedMove
+                tracker = (tracker[0], tracker[1] + 1)
             elif tracker[1] > dst[1]:#move down
-                plannedMove = (tracker[0], tracker[1] - 1)
-                if (plannedMove in antCoordList):
-                    if (tracker[0] < dst[0]):#move right
-                        tracker = (tracker[0] + 1, tracker[1])
-                    elif (tracker[0] > dst[0]):#move left
-                        tracker = (tracker[0] - 1, tracker[1])
-                else:
-                    tracker = plannedMove
+                tracker = (tracker[0], tracker[1] - 1)
             returnList.append(tracker)
 
         for n in range(0, len(returnList) - 1):
@@ -162,7 +130,7 @@ class AIPlayer(Player):
             foodHillLocList = getConstrList(currentState, PLAYER_TWO, [(TUNNEL)])
         if(lookingFor[0] == -4):
             foodHillLocList = getConstrList(currentState, PLAYER_TWO, [(ANTHILL)])
-        print foodHillLocList
+
         shortest = stepsToReach(currentState, antCoord, foodHillLocList[0].coords)
         tester = 0
         for x in range(0, len(foodHillLocList) - 1, 1):
