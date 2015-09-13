@@ -185,7 +185,7 @@ class AIPlayer(Player):
                         return Move(MOVE_ANT, moveList, None)
                     return Move(MOVE_ANT, antCoords, None)
 
-        #insert code for building drones/workers        
+
         return Move(END, None, None)
 
     ##
