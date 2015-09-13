@@ -39,6 +39,10 @@ def legalCoord(coord):
     y = coord[1]
     return ( (x >= 0) and (x <= 9) and (y >= 0) and (y <= 9))
 
+
+##
+# Compare two lists and see if they are equal
+##
 def listComp(list1, list2):
     if len(list1) != len(list2):
         return False
