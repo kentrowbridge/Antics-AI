@@ -165,7 +165,7 @@ class AIPlayer(Player):
 
         shortest = stepsToReach(currentState, antCoord, foodHillLocList[0].coords)
         tester = 0
-        for x in range(0, len(foodHillLocList) - 1, 1):
+        for x in range(0, len(foodHillLocList), 1):
             if(shortest > stepsToReach(currentState, antCoord, foodHillLocList[x].coords)):
                 shortest = stepsToReach(currentState, antCoord, foodHillLocList[x].coords)
                 tester = x
@@ -195,25 +195,35 @@ class AIPlayer(Player):
     #
     def getMove(self, currentState):
         mergedList = getAntList(currentState, PLAYER_TWO, [(WORKER), (QUEEN), (DRONE), (SOLDIER)])
-        soldiers = getAntList(currentState, PLAYER_TWO, [(SOLDIER)])
+        workers = getAntList(currentState, PLAYER_TWO, [(WORKER)])
         drones = getAntList(currentState, PLAYER_TWO, [(DRONE)])
         foodLocList = getConstrList(currentState, None, [(FOOD)])
         homes = getConstrList(currentState, PLAYER_TWO, [(ANTHILL), (TUNNEL)])
         buildMoves = listAllBuildMoves(currentState)
 
         #loop through all the possible build moves
-        for b in range(0, len(buildMoves) - 1, 1):
+        for b in range(0, len(buildMoves), 1):
             if(buildMoves[b].buildType == SOLDIER and len(drones) >= 2 and len(soldiers) < 2):
                 return buildMoves[b]
             if(buildMoves[b].buildType == DRONE):
                 return buildMoves[b]
-
+            if(len(workers) < 2 and buildMoves[b].buildType == WORKER):
+                return buildMoves[b]
 
         #For each ant we own
         for ant in mergedList:
             #Ant's current coordinates
             antCoords = ant.coords
             if(ant.hasMoved == False):
+                if(ant.type == QUEEN):
+                    #move one right and one down
+
+                    #moveList = self.getNextStep(currentState, antCoords, (1,0), 2)
+                    #if isPathOkForQueen(moveList):
+                    #return Move(MOVE_ANT, (2,0), None
+                    if(antCoords != (2,0)):
+                        return Move(MOVE_ANT, [antCoords, (2,0)], None)
+
                 if(ant.type == WORKER ):
                     #Movement paths of a worker ant
                     paths = listAllMovementPaths(currentState, antCoords, 2)
@@ -252,16 +262,7 @@ class AIPlayer(Player):
                     else:
                         moveList = self.getNextStep(currentState, antCoords, enemyHill, 3)
                         return Move(MOVE_ANT, moveList, None)
-                if(ant.type == QUEEN):
-                    #move one right and one down
-
-                    #moveList = self.getNextStep(currentState, antCoords, (1,0), 2)
-                    #if isPathOkForQueen(moveList):
-                    #return Move(MOVE_ANT, (2,0), None
-                    if(antCoords != (2,0)):
-                        return Move(MOVE_ANT, [antCoords, (2,0)], None)
-
-
+                        
         return Move(END, None, None)
 
     ##
@@ -284,8 +285,13 @@ class AIPlayer(Player):
     #Return: A coordinate that matches one of the entries of enemyLocations. ((int,int))
     ##
     def getAttack(self, currentState, attackingAnt, enemyLocations):
+        for e in enemyLocations:
+            trucktion = getConstrAt(currentState, e)
+            if(trucktion == None):
+                return e
+            elif(trucktion.type == ANTHILL or trucktion.type == QUEEN):
+                return e
         return enemyLocations[0]
-
     ##
     #registerWin
     #Description: The last method, registerWin, is called when the game ends and simply
