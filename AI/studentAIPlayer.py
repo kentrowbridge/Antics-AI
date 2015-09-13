@@ -88,40 +88,27 @@ class AIPlayer(Player):
     ##
 
     def getNextStep(self, currentState, src, dst, movement):
-        #find the next step in the fastest path to the destination
-        moveList = [src] #length is movement + 1
+        moveList = listAllMovementPaths(currentState, src, movement)
         tracker = src
+        tempList = [src]
 
-        #horizontal movement first, then vertical
-        for n in range(0, movement, 1):
-            print "listReachableAdjacent returned:"
-            print listReachableAdjacent(currentState, tracker, movement)
-            print "tracker:"
-            print tracker
-            if (tracker[0] < dst[0]):#Move right
-                if((tracker[0] + 1, tracker[1]) in listAllMovementPaths(currentState, tracker, movement)[n]):
-                    moveList.append((tracker[0] + 1, tracker[1]))
-                    #adjust tracker for next iteration
-                    tracker = (tracker[0] + 1, tracker[1])
-            elif (tracker[0] > dst[0]):#move left
-                if((tracker[0] - 1, tracker[1]) in listAllMovementPaths(currentState, tracker, movement)[n]):
-                    moveList.append((tracker[0] - 1, tracker[1]))
-                    #adjust tracker for next iteration
-                    tracker = (tracker[0] - 1, tracker[1])
-            elif (tracker[1] > dst[1]):#move down
-                if((tracker[0], tracker[1] - 1) in listAllMovementPaths(currentState, tracker, movement)[n]):
-                    moveList.append((tracker[0], tracker[1] - 1))
-                    #adjust tracker for next iteration
-                    tracker = (tracker[0], tracker[1] - 1)
-            elif (tracker[1] < dst[1]):#move up
-                if((tracker[0], tracker[1] + 1) in listAllMovementPaths(currentState, tracker, movement)[n]):
-                    moveList.append((tracker[0], tracker[1] + 1))
-                    #adjust tracker for next iteration
-                    tracker = (tracker[0], tracker[1] + 1)
-        print "movelist:"
-        print moveList
-        return moveList
+        for n in range(0, movement):
+            if (tracker[0] < dst[0]):#move left
+                tracker = (tracker[0] + 1, tracker[1])
+            elif (tracker[0] > dst[0]):#move right
+                tracker = (tracker[0] - 1, tracker[1])
+            elif tracker[1] < dst[1]:#move down
+                tracker = (tracker[0], tracker[1] + 1)
+            elif tracker[1] > dst[1]:#move up
+                tracker = (tracker[0], tracker[1] - 1)
+            tempList.append(tracker)
 
+        for n in range(0, len(tempList) - 1):
+            for m in range(0, len(moveList)):
+                if listComp(tempList, moveList[m]):
+                    return tempList
+            tempList = tempList[:(len(tempList) - 1)]
+            print tempList
 
     ##
     #Function:  nearestFood
@@ -170,8 +157,6 @@ class AIPlayer(Player):
         for ant in mergedList:
             #Ant's current coordinates
             antCoords = ant.coords
-            print "AntCoords:"
-            print antCoords
             if(ant.hasMoved == False):
                 if(ant.type == WORKER ):
                     #Movement paths of a worker ant
