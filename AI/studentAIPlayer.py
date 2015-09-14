@@ -153,8 +153,17 @@ class AIPlayer(Player):
         returnList = [src]#base case: return a no movement
         return returnList
 
-
-
+    ##
+    #Function: nearestFoodOrHill
+    #Parameters(currentState, antCoord, lookingFor)
+    #       currentState: the current GameState
+    #       antCoord: Where the ant is searching from
+    #       lookingFor: What item youre looking for. (ANTHILL, TUNNEL, FOOD) only
+    #
+    #returns: a coordinate touple of the nearest thing you were looking for
+    #
+    #
+    ##
     def nearestFoodOrHill(self, currentState, antCoord, lookingFor):
         if(lookingFor[0] == -1):
             foodHillLocList = getConstrList(currentState, None, [(FOOD)])
