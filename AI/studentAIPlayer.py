@@ -56,7 +56,7 @@ class AIPlayer(Player):
     ##
     def getPlacement(self, currentState):
         if currentState.phase == SETUP_PHASE_1:
-            return [(2,1), (7,1), (0,3), (1,3), (2,3), (3,3), (4,2), (6,3), (7,3), (8,3), (9,3)]
+            return [(2,1), (7,1), (0,3), (1,3), (2,3), (3,3), (0,0), (6,3), (7,3), (8,3), (9,3)]
 
         #this else if is what sets up the food. it only lets us place 2 pieces
         #of food
@@ -81,7 +81,19 @@ class AIPlayer(Player):
     #  HELPER METHODS
     ##
 
-       #getNextStep
+    def getDistance(self, src, dst):
+        dist = (-1,-1) #initial value, should never return
+        if src[0] < dst[0]:
+            dist = (dst[0] - src[0], dist[1])
+        else:
+            dist = (src[0] - dst[0], dist[1])
+        if src[1] < dst[1]:
+            dist = (dist[0], dst[1] - src[1])
+        else:
+            dist = (dist[0], src[1] - dst[1])
+        return dist
+
+    #getNextStep
     #
     #Description:
     #The getNextStep method is a helper method used in getMove to calculate
@@ -98,62 +110,27 @@ class AIPlayer(Player):
     #Return: List of coordinates for the ant to follow
     def getNextStep(self, currentState, src, dst, movement):
         moveList = listAllMovementPaths(currentState, src, movement)
-        tracker = src
 
-        returnList = [src] #base case: Ant does not move
-        antCoordList = []
-        for ant in getAntList(currentState, None):
-            antCoordList.append(ant.coords)
+        #calculate total distance between src and dst
+        distance = self.getDistance(src, dst)
 
-        for n in range(0, movement):
-            if (tracker[0] < dst[0]):#move right
-                plannedMove = (tracker[0] + 1, tracker[1])
-                if (plannedMove in antCoordList):#if path is blocked by ant
-                    if (tracker[1] < dst[1]):#move up
-                        tracker = (tracker[0], tracker[1] + 1)
-                    elif (tracker[1] > dst[1]):#move down
-                        tracker = (tracker[0], tracker[1] - 1)
-                else:
-                    tracker = plannedMove
-            elif (tracker[0] > dst[0]):#move left
-                plannedMove = (tracker[0] - 1, tracker[1])
-                if (plannedMove in antCoordList):
-                    tracker = (tracker[0] + 1, tracker[1])
-                    if (tracker[1] < dst[1]):#move up
-                        tracker = (tracker[0], tracker[1] + 1)
-                    elif (tracker[1] > dst[1]):#move down
-                        tracker = (tracker[0], tracker[1] - 1)
-                else:
-                    tracker = plannedMove
-            elif tracker[1] < dst[1]:#move up
-                plannedMove = (tracker[0], tracker[1] + 1)
-                if (plannedMove in antCoordList):
-                    if (tracker[0] < dst[0]):#move right
-                        tracker = (tracker[0] + 1, tracker[1])
-                    elif (tracker[0] > dst[0]):#move left
-                        tracker = (tracker[0] - 1, tracker[1])
-                else:
-                    tracker = plannedMove
-            elif tracker[1] > dst[1]:#move down
-                plannedMove = (tracker[0], tracker[1] - 1)
-                if (plannedMove in antCoordList):
-                    if (tracker[0] < dst[0]):#move right
-                        tracker = (tracker[0] + 1, tracker[1])
-                    elif (tracker[0] > dst[0]):#move left
-                        tracker = (tracker[0] - 1, tracker[1])
-                else:
-                    tracker = plannedMove
-            returnList.append(tracker)
+        #keeps track of result of various paths and see which is best
+        path = []
+        for m in moveList:
+            move = m[-1]#get the last coordinate in move
+            #calculate distance reduction
+            temp = self.getDistance(move, dst)
+            if temp[0] <= distance[0] and temp[1] <= distance[1]:
+                path = m
+                distance = temp
 
-        for n in range(0, len(returnList) - 1):
-            for m in range(0, len(moveList)):
-                if listComp(returnList, moveList[m]):
-                    return returnList
-            returnList = returnList[:(len(returnList) - 1)]
-        returnList = [src]#base case: return a no movement
-        return returnList
+            #check the validity of that path
+            for p in path[1:]:
 
-
+                if(getAntAt(currentState, p) != None):
+                    #bad path, reset to not move
+                    path = [src]
+        return path
 
     def nearestFoodOrHill(self, currentState, antCoord, lookingFor):
         if(lookingFor[0] == -1):
@@ -201,68 +178,54 @@ class AIPlayer(Player):
         homes = getConstrList(currentState, PLAYER_TWO, [(ANTHILL), (TUNNEL)])
         buildMoves = listAllBuildMoves(currentState)
 
-        #loop through all the possible build moves
-        for b in range(0, len(buildMoves), 1):
-            if(buildMoves[b].buildType == SOLDIER and len(drones) >= 2 and len(soldiers) < 2):
-                return buildMoves[b]
-            if(buildMoves[b].buildType == DRONE):
-                return buildMoves[b]
-            if(len(workers) < 2 and buildMoves[b].buildType == WORKER):
-                return buildMoves[b]
-
         #For each ant we own
         for ant in mergedList:
             #Ant's current coordinates
             antCoords = ant.coords
+            hillCoords = getConstrList(currentState, PLAYER_TWO, [(ANTHILL)])[0].coords
             if(ant.hasMoved == False):
                 if(ant.type == QUEEN):
-                    #move one right and one down
-
-                    #moveList = self.getNextStep(currentState, antCoords, (1,0), 2)
-                    #if isPathOkForQueen(moveList):
-                    #return Move(MOVE_ANT, (2,0), None
-                    if(antCoords != (2,0)):
-                        return Move(MOVE_ANT, [antCoords, (2,0)], None)
+                    #move towards grass piece
+                    if(ant.coords != (0,0)):
+                        moveList = self.getNextStep(currentState, antCoords, (0,0), 2)
+                        return Move(MOVE_ANT, moveList, None)
 
                 if(ant.type == WORKER ):
                     #Movement paths of a worker ant
                     paths = listAllMovementPaths(currentState, antCoords, 2)
                     if(ant.carrying == False):
-                        #Retrieve food
-                        for f in foodLocList:
-                            #find the closest food
-                            nearestFood = self.nearestFoodOrHill(currentState, antCoords, [(FOOD)])
-                            for m in range(0, len(paths),1):
-                                if(f.coords in paths[m]):
-                                    return Move(MOVE_ANT, paths[m], None)
-                            #food not accessible, move towards food
-                            moveList = self.getNextStep(currentState, antCoords, nearestFood, 2)
-                            return Move(MOVE_ANT, moveList, None)
+                        #find the closest food
+                        nearestFood = self.nearestFoodOrHill(currentState, antCoords, [(FOOD)])
+                        #food not accessible, move towards food
+                        moveList = self.getNextStep(currentState, antCoords, nearestFood, 2)
+                        return Move(MOVE_ANT, moveList, None)
 
                     if(ant.carrying == True):
                         #Return home if carrying food
-                        for h in homes:
-                            #find the closest nest, Tunnel or Hill
-                            nearestHill = self.nearestFoodOrHill(currentState, antCoords, [(ANTHILL)])
-                            nearestTunnel = self.nearestFoodOrHill(currentState, antCoords, [(TUNNEL)])
-                            for m in range(0, len(paths),1):
-                                if(h.coords in paths[m]):
-                                    return Move(MOVE_ANT, paths[m], None)
-                                #food not accessible, move towards food
-                                if(stepsToReach(currentState, antCoords, nearestHill) > stepsToReach(currentState, antCoords, nearestTunnel)):
-                                    moveList = self.getNextStep(currentState, antCoords, nearestTunnel, 2)
-                                else:
-                                    moveList = self.getNextStep(currentState, antCoords, nearestHill, 2)
-                            return Move(MOVE_ANT, moveList, None)
+                        #find the closest nest, Tunnel or Hill
+                        nearestHill = self.nearestFoodOrHill(currentState, antCoords, [(ANTHILL)])
+                        nearestTunnel = self.nearestFoodOrHill(currentState, antCoords, [(TUNNEL)])
+                        if(stepsToReach(currentState, antCoords, nearestHill) > stepsToReach(currentState, antCoords, nearestTunnel)):
+                            moveList = self.getNextStep(currentState, antCoords, nearestTunnel, 2)
+                        else:
+                            moveList = self.getNextStep(currentState, antCoords, nearestHill, 2)
+                        return Move(MOVE_ANT, moveList, None)
+
                 if(ant.type == DRONE):
                     enemyHill = getConstrList(currentState, PLAYER_ONE, [(ANTHILL)])[0].coords
-                    if(antCoords == enemyHill):
-                    #    return Move(MOVE_ANT, [antCoords], None)
-                        pass
-                    else:
+                    if(antCoords != enemyHill):
                         moveList = self.getNextStep(currentState, antCoords, enemyHill, 3)
                         return Move(MOVE_ANT, moveList, None)
-                        
+
+                #Build Stage
+                for b in range(0, len(buildMoves), 1):
+                    if(buildMoves[b].buildType == SOLDIER and len(drones) >= 2 and len(soldiers) < 2):
+                        return buildMoves[b]
+                    if(buildMoves[b].buildType == DRONE):
+                        return buildMoves[b]
+                    if(len(workers) < 2 and buildMoves[b].buildType == WORKER):
+                        return buildMoves[b]
+
         return Move(END, None, None)
 
     ##
