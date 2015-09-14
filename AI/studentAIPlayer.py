@@ -123,7 +123,6 @@ class AIPlayer(Player):
             if temp[0] <= distance[0] and temp[1] <= distance[1]:
                 path = m
                 distance = temp
-
             #check the validity of that path
             for p in path[1:]:
 
@@ -132,6 +131,18 @@ class AIPlayer(Player):
                     path = [src]
         return path
 
+
+    ##
+    #Function: nearestFoodOrHill
+    #Parameters(currentState, antCoord, lookingFor)
+    #       currentState: the current GameState
+    #       antCoord: Where the ant is searching from
+    #       lookingFor: What item youre looking for. (ANTHILL, TUNNEL, FOOD) only
+    #
+    #returns: a coordinate touple of the nearest thing you were looking for
+    #
+    #
+    ##
     def nearestFoodOrHill(self, currentState, antCoord, lookingFor):
         if(lookingFor[0] == -1):
             foodHillLocList = getConstrList(currentState, None, [(FOOD)])
@@ -171,13 +182,23 @@ class AIPlayer(Player):
     #Return: Move(moveType [int], coordList [list of 2-tuples of ints], buildType [int]
     #
     def getMove(self, currentState):
-        mergedList = getAntList(currentState, PLAYER_TWO, [(WORKER), (QUEEN), (DRONE), (SOLDIER)])
+        mergedList = getAntList(currentState, PLAYER_TWO, [(WORKER), (QUEEN), (DRONE)])
         workers = getAntList(currentState, PLAYER_TWO, [(WORKER)])
         drones = getAntList(currentState, PLAYER_TWO, [(DRONE)])
         foodLocList = getConstrList(currentState, None, [(FOOD)])
         homes = getConstrList(currentState, PLAYER_TWO, [(ANTHILL), (TUNNEL)])
         buildMoves = listAllBuildMoves(currentState)
 
+<<<<<<< HEAD
+=======
+        #loop through all the possible build moves
+        for b in range(0, len(buildMoves), 1):
+            if(buildMoves[b].buildType == DRONE and len(drones) < 2):
+                return buildMoves[b]
+            # if(len(workers) < 2 and buildMoves[b].buildType == WORKER):
+            #     return buildMoves[b]
+
+>>>>>>> bb4cda6d5932dbc4195c261beb36ec71571861ba
         #For each ant we own
         for ant in mergedList:
             #Ant's current coordinates
@@ -185,10 +206,19 @@ class AIPlayer(Player):
             hillCoords = getConstrList(currentState, PLAYER_TWO, [(ANTHILL)])[0].coords
             if(ant.hasMoved == False):
                 if(ant.type == QUEEN):
+<<<<<<< HEAD
                     #move towards grass piece
                     if(ant.coords != (0,0)):
                         moveList = self.getNextStep(currentState, antCoords, (0,0), 2)
                         return Move(MOVE_ANT, moveList, None)
+=======
+                    #move one right and one down
+                    #moveList = self.getNextStep(currentState, antCoords, (1,0), 2)
+                    #if isPathOkForQueen(moveList):
+                    #return Move(MOVE_ANT, (2,0), None
+                    if(antCoords != (2,0)):
+                        return Move(MOVE_ANT, [antCoords, (2,0)], None)
+>>>>>>> bb4cda6d5932dbc4195c261beb36ec71571861ba
 
                 if(ant.type == WORKER ):
                     #Movement paths of a worker ant
@@ -213,6 +243,7 @@ class AIPlayer(Player):
 
                 if(ant.type == DRONE):
                     enemyHill = getConstrList(currentState, PLAYER_ONE, [(ANTHILL)])[0].coords
+<<<<<<< HEAD
                     if(antCoords != enemyHill):
                         moveList = self.getNextStep(currentState, antCoords, enemyHill, 3)
                         return Move(MOVE_ANT, moveList, None)
@@ -226,6 +257,19 @@ class AIPlayer(Player):
                     if(len(workers) < 2 and buildMoves[b].buildType == WORKER):
                         return buildMoves[b]
 
+=======
+                    enemyQueen = getAntList(currentState, PLAYER_ONE, [(QUEEN)])[0].coords
+
+                    if(antCoords == enemyHill):
+                        pass
+                    if(getAntAt(currentState, enemyHill) != None and antCoords != enemyHill):
+                        moveList = self.getNextStep(currentState, antCoords, enemyQueen, 3)
+                        return Move(MOVE_ANT, moveList, None)
+                    elif(getAntAt(currentState, enemyHill) == None):
+                        moveList = self.getNextStep(currentState, antCoords, enemyHill, 3)
+                        return Move(MOVE_ANT, moveList, None)
+
+>>>>>>> bb4cda6d5932dbc4195c261beb36ec71571861ba
         return Move(END, None, None)
 
     ##
