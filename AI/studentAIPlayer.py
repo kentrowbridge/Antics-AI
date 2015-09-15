@@ -8,6 +8,7 @@ from Move import Move
 from GameState import addCoords
 from AIPlayerUtils import *
 from random import randint
+import time
 
 ##
 #StudentAIPlayer
@@ -103,54 +104,54 @@ class AIPlayer(Player):
         hill = getConstrList(currentState, self.playerId, [(ANTHILL)])[0].coords
         for move in legalMoves:
             if(move.moveType == MOVE_ANT):
-                ant = getAntAt(currentState, move.coordList[0])
+                ant = getAntAt(currentState, move.coordList[0])#retrieve ant object
                 antType = ant.type
                 antCoords = ant.coords
                 endPoint = None
-                if(antType == QUEEN):
+                if(antType == QUEEN):#move the queen off of the ant hill
                     if(len(move.coordList) > 1 and antCoords == hill):
                         return move
-                    continue
 
                 elif(antType == WORKER or antType == DRONE):
-                    foodList = getConstrList(currentState, None, [(FOOD)])
-                    tunnel = getConstrList(currentState, self.playerId, [(TUNNEL)])[0].coords
                     steps = 100
-                    if(ant.carrying == False and antType == WORKER):
-                        for f in foodList:
-                            temp = stepsToReach(currentState, antCoords, f.coords)
-                            if(temp < steps):
-                                steps = temp
-                                endPoint = f.coords
-                    if(ant.carrying == True and antType == WORKER):
-                        endPoint = tunnel
-                    if(antType == DRONE):
-                        enemyQueen = getAntList(currentState, self.playerId - 1, [(QUEEN)])[0].coords
+                    if(antType == WORKER):
+                        foodList = getConstrList(currentState, None, [(FOOD)])#list of food locations
+                        tunnel = getConstrList(currentState, self.playerId, [(TUNNEL)])[0].coords#location of tunnel
+                        if(ant.carrying == False):#Go get food
+                            for f in foodList:#find closest food
+                                temp = stepsToReach(currentState, antCoords, f.coords)
+                                if(temp < steps):
+                                    steps = temp
+                                    endPoint = f.coords
+                        if(ant.carrying == True):#return food to tunnel
+                            endPoint = tunnel
+                    if(antType == DRONE):#Attack the queen
+                        enemyQueen = getAntList(currentState, (not self.playerId), [(QUEEN)])[0].coords
                         endPoint = enemyQueen
 
-
                     possiblePaths = listAllMovementPaths(currentState, antCoords, 2)
-                    minSteps = 100
+                    steps = 100
                     finalPath = None
+                    #find the fastest path to the end point
                     for path in possiblePaths:
-                        pathEndCoord = path[-1]
+                        pathEndCoord = path[-1]#look last coord in path
                         stepsToEnd = stepsToReach(currentState, pathEndCoord, endPoint)
-                        if(stepsToEnd < minSteps):
-                            minSteps = stepsToEnd
+                        if(stepsToEnd < steps):
+                            steps = stepsToEnd
                             finalPath = path
                     if(move.coordList == finalPath):
                         return move
-
+            #build move
             elif(move.moveType == BUILD):
                 drones = getAntList(currentState, self.playerId, [(DRONE)])
-                if(move.buildType == DRONE):
+                workers = getAntList(currentState, self.playerId, [(WORKER)])
+                if(move.buildType == DRONE):#maintain 2 drones on the board
                     if(len(drones) < 2):
                         return move
-                if(move.buildType == WORKER):
-                    workers = getAntList(currentState, self.playerId, [(WORKER)])
+                if(move.buildType == WORKER):#maintain 1 worker on the board
                     if(len(workers) < 1):
                         return move
-        return Move(END, None, None)
+        return move
 
     ##
     #getAttack
