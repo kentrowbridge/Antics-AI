@@ -99,7 +99,6 @@ class AIPlayer(Player):
     #Return: Move(moveType [int], coordList [list of 2-tuples of ints], buildType [int]
     #
     def getMove(self, currentState):
-
         legalMoves = listAllLegalMoves(currentState)
         hill = getConstrList(currentState, self.playerId, [(ANTHILL)])[0].coords
         for move in legalMoves:
@@ -151,7 +150,6 @@ class AIPlayer(Player):
                     workers = getAntList(currentState, self.playerId, [(WORKER)])
                     if(len(workers) < 1):
                         return move
-
         return Move(END, None, None)
 
     ##
