@@ -11,25 +11,6 @@ from Ant import *
 from Move import *
 
 ##
-#carefulGetMove
-#
-#Description: a method for calling the getMove method on a player in a
-#separate process so as to timeout if it takes too long.  See the use
-#of multiprogramming.Process in the Game.runGame() method below.
-#
-#Parameters
-#  queue - an inter-process queue for passing data back and from
-#          the main process
-##
-def carefulGetMove(queue):
-    player = queue.get()
-    state = queue.get()
-    move = player.getMove(state)
-    queue.put(move)
-    return
-
-
-##
 #Game
 #Description: Keeps track of game logic and manages the play loop.
 ##
@@ -289,25 +270,7 @@ class Game(object):
                             
                 #get the move from the current player in a separate
                 #process so that we can time it out
-                move = None
-                if not type(currentPlayer) is HumanPlayer.HumanPlayer:
-                    queue = multiprocessing.Queue()
-                    playerProc = multiprocessing.Process(target=carefulGetMove, args=(queue,))
-                    playerProc.start()
-                    queue.put(currentPlayer)
-                    queue.put(theState)
-                    playerProc.join(AI_MOVE_TIMEOUT)
-                    if  queue.empty():
-                        playerProc.terminate()
-                        move = Move(END, None, None) #default move
-                        print "Timed out waiting for player #" + str(currentPlayer.playerId) + ": " + currentPlayer.author
-                    else:
-                        move = queue.get(False)
-                    queue.close()
-                    queue.join_thread()
-                else:
-                    #get the move from the current player
-                    move = currentPlayer.getMove(theState)
+                move = currentPlayer.getMove(theState)
                 
                 if move != None and move.coordList != None:
                     for i in xrange(0,len(move.coordList)):
@@ -1647,9 +1610,6 @@ for module in os.listdir("AI"):
 del module
 
 if __name__ == '__main__':
-    #this is required when using mulitprocessing to get around a Windows idiosyncracy
-    multiprocessing.freeze_support()
-
     #Create the game
     a = Game()
     a.start()

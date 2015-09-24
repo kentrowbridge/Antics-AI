@@ -41,17 +41,6 @@ def legalCoord(coord):
 
 
 ##
-# Compare two lists and see if they are equal
-##
-def listComp(list1, list2):
-    if len(list1) != len(list2):
-        return False
-    for n in range(0, len(list1)):
-        if list1[n] != list2[n]:
-            return False
-    return True
-
-##
 # getAntList()
 #
 # builds a list of all ants that meet a given specification
@@ -79,7 +68,7 @@ def getAntList(currentState,
             result.append(ant)
 
     return result
-
+        
 
 ##
 # getConstrList()
@@ -92,7 +81,7 @@ def getAntList(currentState,
 # Parameters:
 #     currentState - a GameState or Node
 #     pid   - all ants must belong to this player id.  Pass None to
-#             indicate any player including unowned constructs like grass/food
+#             indicate any player including unowned constructs like grass/fstep
 #     types - a tuple of all the constr types wanted (see Constants.py)
 #
 def getConstrList(currentState,
@@ -112,7 +101,7 @@ def getConstrList(currentState,
             result.append(constr)
 
     return result
-
+        
 
 ##
 # getConstrAt
@@ -155,14 +144,13 @@ def getAntAt(state, coords):
             return ant
 
     return None  #not found
-
+    
 
 ##
 # listAdjacent
 #
 # Parameters:
 #     coord    - a tuple containing a valid x,y coordinate
-#     reqEmpty - if 'true' listAdjacent will skip cells that are occupied
 #
 # Return: a list of all legal coords that are adjacent to the given space
 #
@@ -197,11 +185,11 @@ def listAdjacent(coord):
 # calculates all the adjacent cells that can be reached from a given coord.
 #
 # Parameters:
-#    state        - a GameState object
+#    state        - a GameState object 
 #    coords       - where the ant is
 #    movement     - movement points the ant has
 #
-# Return:  a list of coords (tuples)
+# Return:  a list of coords (tuples)   
 def listReachableAdjacent(state, coords, movement):
     #build a list of all adjacent cells
     oneStep = listAdjacent(coords)
@@ -218,31 +206,6 @@ def listReachableAdjacent(state, coords, movement):
             candMoves.append(cell)
 
     return candMoves
-
-##
-# listReachableAdjacentOLD
-#
-# calculates all the adjacent cells that can be reached from a given coord.
-#
-# Parameters:
-#    currentState - current game state
-#    coords       - where the ant is
-#    movement     - movement points ant has
-#
-# Return:  a list of coords (tuples)
-def listReachableAdjacentOLD(currentState, coords, movement):
-    #build a list of all adjacent cells
-    oneStep = listAdjacent(coords)
-
-    #winnow the list based upon cell contents and cost to reach
-    candMoves = []
-    for cell in oneStep:
-        loc = currentState.board[cell[0]][cell[1]]
-        if (loc.ant == None) and (loc.getMoveCost() <= movement):
-            candMoves.append(cell)
-
-    return candMoves
-
 
 ##
 # listAllMovementPaths              <!-- RECURSIVE -->
@@ -376,7 +339,7 @@ def listAllBuildMoves(currentState):
     #if we don't have 3 food to build a tunnel then we're done
     if (myInv.foodCount < 3):
         return result
-
+                
     #for each worker ant that is a legal position, you could build
     #a tunnel
     for ant in myInv.ants:
@@ -419,7 +382,7 @@ def isPathOkForQueen(path):
         or (coord[1] == BOARD_LENGTH / 2):
             return False
     return True
-
+    
 ##
 # listAllMovementMoves
 #
@@ -487,9 +450,9 @@ def getCurrPlayerInventory(currentState):
         if inv.player == currentState.whoseTurn:
             resultInv = inv
             break
-
+        
     return resultInv
-
+    
 ##
 # Return: a reference to the QUEEN of the player whose turn it is
 def getCurrPlayerQueen(currentState):
@@ -500,7 +463,7 @@ def getCurrPlayerQueen(currentState):
             queen = inv.getQueen()
             break
     return queen
-
+    
 ##
 # returns a character representation of a given ant
 # (helper for asciiPrintState)
