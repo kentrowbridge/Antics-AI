@@ -101,6 +101,7 @@ class AIPlayer(Player):
         bestRating = 0.0
         bestMove = None
 
+        #look for the best possible move
         for m in moves:
             if(m == None):
                 continue
@@ -116,9 +117,9 @@ class AIPlayer(Player):
     #
     ##
     def getStateRating(self, currentState, state):
-        player = state.whoseTurn
+        global closestFood #used so we don't continually calculate closest food to tunnel
 
-        global closestFood
+        player = state.whoseTurn
         enemy = not state.whoseTurn
         playerCurrInv = currentState.inventories[player] # get inventory for the current state
         enemyCurrInv = currentState.inventories[enemy]
@@ -182,19 +183,15 @@ class AIPlayer(Player):
         workerCount = len(getAntList(state, player, [(WORKER)]))
         droneCount = len(getAntList(state, player, [DRONE]))
 
-        # for a in playerInv.ants:
-        #     if(a.type == WORKER and workerCount < 1):
-        #         antRating += 10.0
-        #     elif (a.type == DRONE and droneCount < 2):
-        #         antRating += 10.0
-        #     elif (a.type == SOLDIER or a.type == R_SOLDIER):
-        #         antRating += 0.0
+        #big bonus for optimal ant count
         if(workerCount == 1 or droneCount == 2):
             antRating += 75.0
 
+        #automatic fail if ant count is off
         if workerCount != 1 or droneCount != 2:
             antRating == 0.0
 
+        #ensure ratings are between 0.0 and 1.0
         foodRating = foodRating / bestFoodRating
         antRating = antRating / bestAntRating
 
@@ -264,6 +261,7 @@ class AIPlayer(Player):
             antOnHill = getAntAt(state, antHillCoords)
             antOnTunnel = getAntAt(state, playerInv.getTunnels()[0].coords)
 
+            #handle food drop off
             if(antOnHill != None and antOnHill.carrying):
                 playerInv.foodCount += 1
                 antOnHill.carrying = False
