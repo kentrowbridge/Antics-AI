@@ -81,7 +81,7 @@ def getAntList(currentState,
 # Parameters:
 #     currentState - a GameState or Node
 #     pid   - all ants must belong to this player id.  Pass None to
-#             indicate any player including unowned constructs like grass/fstep
+#             indicate any player including unowned constructs like grass/food
 #     types - a tuple of all the constr types wanted (see Constants.py)
 #
 def getConstrList(currentState,
